@@ -15,7 +15,14 @@ export const CATEGORIES: { value: Category; label: string; emoji: string }[] = [
   { value: "accessory", label: "Accessory", emoji: "👜" },
 ];
 
-export type Style = "casual" | "formal" | "gym" | "vacation" | "going-out";
+export type Style =
+  | "casual"
+  | "formal"
+  | "gym"
+  | "vacation"
+  | "going-out"
+  | "school"
+  | "meetings";
 
 export const STYLES: { value: Style; label: string }[] = [
   { value: "casual", label: "Casual" },
@@ -23,6 +30,17 @@ export const STYLES: { value: Style; label: string }[] = [
   { value: "gym", label: "Gym" },
   { value: "vacation", label: "Vacation" },
   { value: "going-out", label: "Going Out" },
+  { value: "school", label: "School" },
+  { value: "meetings", label: "Meetings" },
+];
+
+export type Season = "spring" | "summer" | "fall" | "winter";
+
+export const SEASONS: { value: Season; label: string; emoji: string }[] = [
+  { value: "spring", label: "Spring", emoji: "🌸" },
+  { value: "summer", label: "Summer", emoji: "☀️" },
+  { value: "fall", label: "Fall", emoji: "🍂" },
+  { value: "winter", label: "Winter", emoji: "❄️" },
 ];
 
 export interface ClothingItem {
@@ -31,9 +49,11 @@ export interface ClothingItem {
   category: Category;
   color: string;
   brand: string | null;
+  size: string | null;
+  price: number | null;
   tags: string[];
   imageUrl: string;
-  warmth: number; // 1 (light) – 5 (heavy)
+  warmth: number;
   createdAt: string;
   lastWornAt: string | null;
 }
@@ -43,6 +63,8 @@ export interface Outfit {
   name: string;
   style: Style;
   itemIds: number[];
+  seasons: Season[];
+  wornCount: number;
   favorite: boolean;
   createdAt: string;
 }
@@ -54,6 +76,37 @@ export interface Trip {
   startDate: string | null;
   endDate: string | null;
   itemIds: number[];
+  createdAt: string;
+}
+
+export interface Profile {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  avatarUrl: string | null;
+  createdAt: string;
+}
+
+export interface FriendRequest {
+  id: number;
+  fromUser: string;
+  toUser: string;
+  status: "pending" | "accepted" | "rejected";
+  createdAt: string;
+  fromProfile?: Profile;
+  toProfile?: Profile;
+}
+
+export interface Notification {
+  id: number;
+  userId: string;
+  type: string;
+  title: string;
+  body: string | null;
+  payload: Record<string, unknown>;
+  readAt: string | null;
   createdAt: string;
 }
 

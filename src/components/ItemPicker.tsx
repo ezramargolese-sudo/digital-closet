@@ -47,18 +47,14 @@ export default function ItemPicker({
               type="button"
               onClick={() => toggle(item.id)}
               className={`relative overflow-hidden rounded-xl border bg-white text-left transition ${
-                selected ? "border-ink ring-2 ring-ink" : "border-line"
+                selected ? "border-ink ring-2 ring-ink" : "border-blush"
               }`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={item.imageUrl}
-                alt={item.name}
-                className="aspect-square w-full object-cover"
-              />
-              <p className="truncate px-2 py-1.5 text-[11px] font-medium">{item.name}</p>
+              <img src={item.imageUrl} alt={item.name} className="aspect-square w-full object-cover" />
+              <p className="truncate px-2 py-1.5 text-[11px] font-semibold">{item.name}</p>
               {selected ? (
-                <span className="absolute right-1.5 top-1.5 grid h-5 w-5 place-items-center rounded-full bg-ink text-[10px] font-semibold text-paper">
+                <span className="absolute right-1.5 top-1.5 grid h-5 w-5 place-items-center rounded-full bg-ink text-[10px] font-bold text-cream">
                   ✓
                 </span>
               ) : null}
@@ -68,7 +64,7 @@ export default function ItemPicker({
       </div>
 
       {filtered.length === 0 ? (
-        <p className="mt-6 text-center text-sm text-muted">No items in this category.</p>
+        <p className="mt-6 text-center text-sm text-rose">No items in this category.</p>
       ) : null}
     </div>
   );
@@ -87,8 +83,8 @@ function Pill({
     <button
       type="button"
       onClick={onClick}
-      className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition ${
-        active ? "border-ink bg-ink text-paper" : "border-line bg-white text-ink"
+      className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+        active ? "border-ink bg-ink text-cream" : "border-blush bg-white text-ink"
       }`}
     >
       {children}

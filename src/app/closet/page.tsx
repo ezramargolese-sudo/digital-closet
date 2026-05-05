@@ -10,12 +10,23 @@ import { CATEGORIES, type Category, type ClothingItem } from "@/lib/types";
 export default function ClosetPage() {
   const [items, setItems] = useState<ClothingItem[] | null>(null);
   const [filter, setFilter] = useState<Category | "all">("all");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/items")
-      .then((r) => r.json())
-      .then((d) => setItems(d.items ?? []))
-      .catch(() => setItems([]));
+      .then(async (r) => {
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok) {
+          setError(d.error ?? `Failed to load (${r.status})`);
+          setItems([]);
+          return;
+        }
+        setItems(d.items ?? []);
+      })
+      .catch(() => {
+        setError("Network error");
+        setItems([]);
+      });
   }, []);
 
   const filtered = useMemo(() => {
@@ -23,6 +34,11 @@ export default function ClosetPage() {
     if (filter === "all") return items;
     return items.filter((i) => i.category === filter);
   }, [items, filter]);
+
+  const totalValue = useMemo(() => {
+    if (!items) return 0;
+    return items.reduce((sum, i) => sum + (i.price ?? 0), 0);
+  }, [items]);
 
   return (
     <>
@@ -32,7 +48,7 @@ export default function ClosetPage() {
         action={
           <Link
             href="/closet/new"
-            className="grid h-10 w-10 place-items-center rounded-full bg-ink text-paper"
+            className="grid h-10 w-10 place-items-center rounded-full bg-ink text-cream"
             aria-label="Add item"
           >
             <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
@@ -42,8 +58,24 @@ export default function ClosetPage() {
         }
       />
 
+      {error ? (
+        <p className="mx-5 rounded-2xl border border-blush bg-white p-4 text-sm text-rose">
+          {error}
+        </p>
+      ) : null}
+
+      {items && items.length > 0 && totalValue > 0 ? (
+        <div className="mx-5 mb-3 flex items-center justify-between rounded-2xl border border-blush bg-white p-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-mauve">Closet value</p>
+            <p className="font-display text-2xl font-bold">${totalValue.toFixed(2)}</p>
+          </div>
+          <span className="text-3xl">💰</span>
+        </div>
+      ) : null}
+
       {items === null ? (
-        <div className="px-5 py-8 text-center text-sm text-muted">Loading closet...</div>
+        <div className="px-5 py-8 text-center text-sm text-rose">Loading closet...</div>
       ) : items.length === 0 ? (
         <EmptyState
           title="Add your first piece"
@@ -75,9 +107,7 @@ export default function ClosetPage() {
           </div>
 
           {filtered.length === 0 ? (
-            <p className="mt-8 text-center text-sm text-muted">
-              No items in this category yet.
-            </p>
+            <p className="mt-8 text-center text-sm text-rose">No items in this category yet.</p>
           ) : null}
         </>
       )}
@@ -98,8 +128,8 @@ function FilterPill({
     <button
       type="button"
       onClick={onClick}
-      className={`shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-medium transition ${
-        active ? "border-ink bg-ink text-paper" : "border-line bg-white text-ink"
+      className={`shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition ${
+        active ? "border-ink bg-ink text-cream" : "border-blush bg-white text-ink"
       }`}
     >
       {children}

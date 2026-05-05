@@ -7,14 +7,19 @@ const NAV = [
   { href: "/", label: "Today", icon: SparkIcon },
   { href: "/closet", label: "Closet", icon: HangerIcon },
   { href: "/outfits", label: "Outfits", icon: GridIcon },
-  { href: "/trips", label: "Trips", icon: SuitcaseIcon },
+  { href: "/friends", label: "Friends", icon: HeartIcon },
+  { href: "/account", label: "Me", icon: UserIcon },
 ];
+
+const HIDE_ON = ["/welcome", "/login", "/signup"];
 
 export default function BottomNav() {
   const pathname = usePathname();
+  if (HIDE_ON.some((p) => pathname === p || pathname.startsWith(p + "/"))) return null;
+
   return (
     <nav className="fixed inset-x-0 bottom-0 z-30 flex justify-center pointer-events-none">
-      <div className="pointer-events-auto mx-auto mb-3 flex w-[min(92%,420px)] items-stretch justify-between rounded-full border border-line bg-white/90 p-1 shadow-[0_8px_24px_rgba(0,0,0,0.06)] backdrop-blur">
+      <div className="pointer-events-auto mx-auto mb-3 flex w-[min(92%,440px)] items-stretch justify-between rounded-full border border-blush bg-white/95 p-1 shadow-soft backdrop-blur">
         {NAV.map(({ href, label, icon: Icon }) => {
           const active =
             href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href + "/");
@@ -22,8 +27,8 @@ export default function BottomNav() {
             <Link
               key={href}
               href={href}
-              className={`flex flex-1 flex-col items-center justify-center gap-0.5 rounded-full py-2 text-[11px] font-medium transition ${
-                active ? "bg-ink text-paper" : "text-muted hover:text-ink"
+              className={`flex flex-1 flex-col items-center justify-center gap-0.5 rounded-full py-2 text-[11px] font-semibold transition ${
+                active ? "bg-ink text-cream" : "text-mauve hover:text-ink"
               }`}
             >
               <Icon className="h-5 w-5" />
@@ -62,12 +67,18 @@ function GridIcon({ className }: { className?: string }) {
     </svg>
   );
 }
-function SuitcaseIcon({ className }: { className?: string }) {
+function HeartIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="7" width="18" height="13" rx="2" />
-      <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
-      <path d="M3 12h18" />
+      <path d="M12 21s-7-4.35-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.65-7 10-7 10z" />
+    </svg>
+  );
+}
+function UserIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21a8 8 0 0 1 16 0" />
     </svg>
   );
 }

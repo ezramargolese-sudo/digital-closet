@@ -1,171 +1,187 @@
 # Digital Closet
 
-A mobile-first wardrobe app. Snap your clothes, build outfits, get a "what should I wear?" suggestion that knows the weather. Vacation mode lets you pack a trip closet and only build outfits from what you brought.
+Mobile-first wardrobe app: snap your clothes, build outfits, get a "what should I wear?" suggestion that knows the weather. Vacation mode for trip closets, social features to share looks with friends, full sign-up flow with usernames.
 
-Next.js 15 + TypeScript + Tailwind, backed by **Supabase** (Postgres + Storage). Hosted on **Vercel** with auto-deploy on `git push`.
+Stack: **Next.js 15 + TypeScript + Tailwind + Quicksand**, backed by **Supabase Auth + Postgres + Storage**, hosted on **Vercel** with auto-deploy on `git push`.
 
-## Quick deploy walkthrough (~10 min)
+## Deploy walkthrough (~10 min)
 
-This gets a public URL you can share with anyone. Every `git push` to `main` auto-rebuilds and updates the live site.
+### 1. Create the Supabase project
 
-### 1. Create a Supabase project
+1. [supabase.com](https://supabase.com) → sign in with GitHub → **New project**.
+2. Name it `digital-closet`, pick a strong DB password, choose the closest region.
+3. Wait ~2 min.
 
-1. Go to [supabase.com](https://supabase.com) → sign in with GitHub → **New project**.
-2. Name it `digital-closet`, pick a strong DB password, choose the region nearest you.
-3. Wait ~2 min for it to spin up.
+### 2. Run the database migrations
 
-### 2. Run the database migration
+In **SQL Editor** → **New query**, paste and run each of these in order:
 
-1. In Supabase, open **SQL Editor** (left sidebar) → **New query**.
-2. Paste the contents of [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql) → **Run**.
-3. You should see "Success. No rows returned." Three tables (`items`, `outfits`, `trips`) now exist.
+1. `supabase/migrations/0001_init.sql`
+2. `supabase/migrations/0002_extras_and_auth.sql`
 
-### 3. Create the storage bucket
+You'll have these tables: `items`, `outfits`, `trips`, `profiles`, `friend_requests`, `friendships`, `notifications`.
 
-1. **Storage** (left sidebar) → **New bucket** → name it `closet` → toggle **Public bucket** ON → **Save**.
-2. (The app stores clothing photos here. Public-bucket means image URLs can be loaded directly by your phone.)
+### 3. Storage bucket
 
-### 4. Grab your env vars
+**Storage** → **New bucket** → name it `closet` → **Public bucket** ON → **Save**.
 
-1. **Project Settings** (gear icon, bottom-left) → **API**.
-2. Copy two values:
-   - **Project URL** → this is `NEXT_PUBLIC_SUPABASE_URL`
-   - **service_role** key under "Project API keys" → this is `SUPABASE_SERVICE_ROLE_KEY`
-   - ⚠️ The `service_role` key bypasses security — server-only, never commit, never expose to the browser.
+### 4. Auth settings (optional)
 
-### 5. Run locally to test
+**Authentication → Providers → Email** → toggle "Confirm email" OFF if you want signup to log you in immediately. Leave ON in production.
+
+### 5. Env vars
+
+**Project Settings → API**, copy:
+- **Project URL** → `NEXT_PUBLIC_SUPABASE_URL`
+- **anon public** key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- **service_role** key → `SUPABASE_SERVICE_ROLE_KEY` *(server-only secret)*
+
+### 6. Run locally
 
 ```bash
-cp .env.local.example .env.local
-# Edit .env.local and paste in your two values
+cp .env.local.example .env.local   # paste the three values
 npm install
 npm run dev
 ```
 
-Open `http://localhost:3000`, add a clothing photo, confirm it appears — that means Postgres + Storage are wired correctly.
+Open `http://localhost:3000` → you'll land on the welcome screen → sign up.
 
-### 6. Push to GitHub
+### 7. Push to GitHub
 
 ```bash
-# from the digital-closet folder
-git init
-git add .
-git commit -m "initial commit"
-# Create a new repo at https://github.com/new (private is fine)
+git add . && git commit -m "ready to deploy"
+# create a private repo at https://github.com/new
 git remote add origin https://github.com/YOUR_USER/digital-closet.git
 git branch -M main
 git push -u origin main
 ```
 
-### 7. Deploy on Vercel
+### 8. Deploy on Vercel
 
-1. Go to [vercel.com](https://vercel.com) → sign in with GitHub → **Add New** → **Project**.
-2. Pick the `digital-closet` repo → **Import**.
-3. Expand **Environment Variables** and add:
-   - `NEXT_PUBLIC_SUPABASE_URL` = your Supabase URL
-   - `SUPABASE_SERVICE_ROLE_KEY` = your Supabase service-role key
-4. **Deploy**. ~60 sec later you'll have a URL like `digital-closet-abc.vercel.app`.
+1. [vercel.com](https://vercel.com) → **Add New** → **Project** → import the repo.
+2. Add the three env vars under **Environment Variables**.
+3. Deploy. Done — share the `*.vercel.app` URL.
 
-Send that URL to your girlfriend. She opens it on her phone → adds it to home screen → uses it like an app.
-
-### 8. The fix-and-update loop
+### The fix-and-update loop
 
 ```bash
-# Make a code change locally
-git commit -am "fix: blah"
-git push
+git commit -am "fix: ..." && git push
 ```
+Vercel rebuilds in ~60 sec, next page load shows the new version.
 
-Vercel rebuilds in ~60 sec, then her next page load gets the new version. No app store, no waiting.
+## What's in the app
 
-## Stack
+### Auth & onboarding
+- Welcome / "hello." landing screen on first visit
+- Sign up: email, password, first name, last name, **unique username** (live availability check)
+- Login, logout, server-side session via Supabase SSR cookies
+- All app routes are gated by middleware — unauthenticated visitors land on welcome
 
-- **Frontend**: Next.js 15 App Router, React 19, TypeScript, Tailwind CSS
-- **API**: Next.js route handlers (server-only, use service-role key)
-- **Database**: Supabase Postgres
-- **Image storage**: Supabase Storage (`closet` bucket, public)
-- **Weather**: Open-Meteo (free, no key, server-side proxy at `/api/weather`)
-- **Geolocation**: Browser `navigator.geolocation`
+### Home — "How can I help today?"
+- Greeting by first name + time of day
+- Hub with one big card ("What should I wear?") and four smaller ones (Add to closet, My closet, My outfits, Trips)
+- Compact weather chip in the top-right corner (geolocation + Open-Meteo)
+- Notification bell with unread badge
+- "What should I wear" mode: pick an occasion (Casual, Formal, Gym, Vacation, Going Out, **School**, **Meetings**), get a weather-aware outfit suggestion, save as outfit
+
+### Closet
+- Add items via camera or photo library (Supabase Storage)
+- Each item: name, color, brand, **size**, **price**, category, warmth, style tags
+- **Total closet value** badge at the top of the closet screen (sums prices)
+- Edit, delete, mark "worn today"
+
+### Outfits
+- Combine items into named looks with style + **multiple seasons** (spring/summer/fall/winter)
+- **"Worn count" plus button** on every outfit card and detail screen — tap to bump, count is shown next to it; bumping also stamps each item's last-worn timestamp
+- Filter list by season
+- Favorite outfits
+
+### Trips (Vacation mode)
+- Trip closet with destination + dates + packed items
+- Packing checklist with progress bar (per-trip in localStorage)
+- "Build outfit from trip" tab generates suggestions from packed items only
+
+### Social
+- **Friends** tab: send requests by `@username`, see incoming requests, accept/decline
+- View any friend's saved outfits at `/friends/<username>`
+- **Notifications** tab: friend request received, friend request accepted
+- Reciprocal request auto-accepts (you both wanted to be friends)
+
+### Account
+- Profile card (initials avatar, name, @username, email)
+- Quick links to closet/outfits/trips/friends/notifications
+- Sign out
+
+## Theme
+
+Custom palette: `#190019` `#2b124c` `#522b5b` `#854f6c` `#dfb6b2` `#fbe4d8`. Tailwind tokens: `ink`, `plum`, `mauve`, `rose`, `blush`, `cream`. Font: **Quicksand** (rounded, clean) via `next/font/google`.
 
 ## Project structure
 
 ```
 digital-closet/
-├── supabase/migrations/0001_init.sql   # run once in Supabase SQL editor
+├── supabase/migrations/
+│   ├── 0001_init.sql
+│   └── 0002_extras_and_auth.sql
 ├── src/
+│   ├── middleware.ts                # gates routes by auth
 │   ├── app/
-│   │   ├── layout.tsx                   # mobile shell + bottom nav
-│   │   ├── page.tsx                     # "What should I wear?" home
-│   │   ├── closet/                      # closet grid + add/edit
-│   │   ├── outfits/                     # outfit list/builder/detail
-│   │   ├── trips/                       # vacation mode
-│   │   └── api/                         # items, outfits, trips, upload, suggest, weather
-│   ├── components/                      # BottomNav, Header, ItemCard, ItemPicker, EmptyState
+│   │   ├── layout.tsx               # mobile shell + Quicksand
+│   │   ├── globals.css              # theme + hero gradient
+│   │   ├── welcome/page.tsx         # "hello." landing
+│   │   ├── login/page.tsx
+│   │   ├── signup/page.tsx
+│   │   ├── page.tsx                 # home hub + "what should I wear"
+│   │   ├── closet/                  # closet grid + add/edit
+│   │   ├── outfits/                 # outfits + builder + detail (worn count)
+│   │   ├── trips/                   # vacation mode
+│   │   ├── friends/                 # friends list + friend profile
+│   │   ├── notifications/page.tsx
+│   │   ├── account/page.tsx
+│   │   └── api/
+│   │       ├── auth/                # signup, login, logout, username check
+│   │       ├── items/, outfits/, trips/   # CRUD + /wear bump
+│   │       ├── friends/             # list, send request, accept/decline, friend's outfits
+│   │       ├── notifications/, profile/
+│   │       ├── upload/, suggest/, weather/
+│   ├── components/                  # BottomNav, Header, ItemCard, ItemPicker, EmptyState
 │   └── lib/
-│       ├── supabase.ts                  # admin client (service-role)
-│       ├── db.ts                        # CRUD against Supabase
-│       ├── suggest.ts                   # outfit suggestion engine
+│       ├── supabase.ts              # admin + SSR clients + currentUser/requireUser
+│       ├── api-helpers.ts           # error → JSON
+│       ├── db.ts                    # CRUD against Supabase, scoped by user_id
+│       ├── suggest.ts               # outfit suggestion engine
 │       └── types.ts
-├── .env.local.example
-├── next.config.ts
 └── package.json
 ```
 
-## Features
-
-### Closet
-- Add items via camera (`<input capture="environment">`) or photo upload — image goes to Supabase Storage
-- Each item: name, category (top/bottom/outerwear/shoes/dress/accessory), color, brand, warmth 1–5, style tags
-- Edit, delete, mark "worn today"
-
-### Outfit builder
-- Combine items into named outfits with a style (casual, formal, gym, vacation, going-out)
-- Favorite outfits, edit, "wearing today" stamps every item
-
-### What should I wear?
-- Detects location → fetches current weather → suggests an outfit honoring temperature and rain
-- Suggestion engine in `src/lib/suggest.ts`:
-  - warmth bands by feels-like temperature (≥25°C → light only; <0°C → heavy only)
-  - adds outerwear when feels-like < 14°C OR precip% > 50%
-  - filters by selected style tag
-  - relaxes filter if strict pool is empty
-  - 30% chance of dress instead of top/bottom when one matches
-- "Save as outfit" creates a named outfit from the suggestion
-
-### Vacation mode
-- Create a trip with destination + dates
-- Pack items into the trip closet
-- "Build outfit" tab generates suggestions only from packed items
-- "Packing" tab is a checklist with progress (saved per-trip in `localStorage`)
-
 ## API
 
-All routes server-side, all use Supabase service-role key.
+Every route is server-side, scoped to the authenticated user via Supabase SSR cookies.
 
 | Method | Path | Notes |
 |--------|------|-------|
-| `GET`  | `/api/items` | list closet |
-| `POST` | `/api/items` | create (json) |
+| `POST` | `/api/auth/signup` | email, password, firstName, lastName, username |
+| `POST` | `/api/auth/login` | email, password |
+| `POST` | `/api/auth/logout` | |
+| `GET`  | `/api/auth/username?u=...` | live availability check |
+| `GET`  | `/api/profile` | current user's profile |
+| `GET`/`POST` | `/api/items` | scoped to current user |
 | `GET`/`PATCH`/`DELETE` | `/api/items/[id]` | |
-| `POST` | `/api/upload` | multipart `file` → uploads to `closet` bucket → `{ url }` |
+| `POST` | `/api/upload` | multipart `file` → uploads to `closet/<userId>/...` |
 | `GET`/`POST` | `/api/outfits` | |
 | `GET`/`PATCH`/`DELETE` | `/api/outfits/[id]` | |
+| `POST` | `/api/outfits/[id]/wear` | bump worn count + stamp items |
 | `GET`/`POST` | `/api/trips` | |
 | `GET`/`PATCH`/`DELETE` | `/api/trips/[id]` | |
+| `GET`/`POST` | `/api/friends` | list + send request by username |
+| `POST` | `/api/friends/requests/[id]` | `{ accept: bool }` |
+| `GET`  | `/api/friends/[username]/outfits` | view a friend's outfits |
+| `GET`/`POST` | `/api/notifications` | list / mark all read |
+| `POST` | `/api/suggest` | weather + style + optional tripId → outfit |
 | `GET`  | `/api/weather?lat=..&lon=..` | proxies Open-Meteo |
-| `POST` | `/api/suggest` | `{ style?, weather?, tripId? }` → outfit |
 
-## Where to extend
+## Privacy
 
-- **AI auto-detect** — POST the uploaded image to a vision model (Anthropic, OpenAI) inside `/api/upload` and pre-fill category/color before showing the form.
-- **Product link import** — add `POST /api/items/import-url` that fetches the page, scrapes OpenGraph image + title, then runs auto-detect.
-- **Multi-user** — add Supabase Auth, add `user_id uuid references auth.users` columns, swap service-role for an SSR client that respects RLS, and write per-user RLS policies.
-- **Calendar / wear-log** — new `worn_log` table joining outfits to dates; render as a month view.
-- **Recently worn** — already tracked via `last_worn_at`; add a "haven't worn recently" filter to the closet view.
-
-## Notes
-
-- The `service_role` key bypasses RLS. We only ever use it on the server. The browser sees the public Supabase URL (fine) but never the service-role key.
-- The `closet` storage bucket is public-read so phones can render images straight from Supabase's CDN. URLs are unguessable (`Date.now()` + 16 hex chars).
-- Vercel free tier: 100 GB bandwidth/month + serverless functions. Plenty for two users.
-- Supabase free tier: 500 MB DB + 1 GB storage + 50k monthly active users. Plenty for two users.
+- The `service_role` key is server-only and never sent to the browser.
+- Storage bucket is public-read so phones can render images directly. Object keys are namespaced by user id (`closet/<user-id>/<random>.jpg`) so URLs are unguessable.
+- Each user only sees their own items/outfits/trips. Friends only see each other's *outfits* (not raw closet items).

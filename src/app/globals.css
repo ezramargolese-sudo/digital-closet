@@ -8,37 +8,49 @@
 
 html,
 body {
-  background: #fafaf7;
-  color: #111111;
+  background: #fbe4d8;
+  color: #190019;
   -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  font-family:
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    "Segoe UI",
-    Inter,
-    sans-serif;
+  font-family: var(--font-quicksand), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-weight: 500;
+  letter-spacing: -0.005em;
   overscroll-behavior-y: none;
 }
 
-button,
-a {
+h1, h2, h3, .display {
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+button, a {
   -webkit-tap-highlight-color: transparent;
 }
 
-input,
-select,
-textarea {
-  font-size: 16px; /* prevent iOS zoom */
+input, select, textarea {
+  font-size: 16px;
+  font-family: inherit;
 }
 
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Hero gradient used on welcome / home headers */
+.hero-grad {
+  background:
+    radial-gradient(120% 80% at 0% 0%, rgba(133, 79, 108, 0.55), transparent 60%),
+    radial-gradient(120% 80% at 100% 0%, rgba(82, 43, 91, 0.45), transparent 55%),
+    linear-gradient(180deg, #190019 0%, #2b124c 100%);
 }
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+
+/* Soft card elevation for the cream theme */
+.card {
+  background: #ffffff;
+  border: 1px solid #dfb6b2;
 }
+
+/* Pretty subtle scrollbar for desktop */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: #dfb6b2; border-radius: 8px; }
