@@ -27,20 +27,37 @@ export default function NewItemPage() {
     setUploading(true);
     setError(null);
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const r = await fetch("/api/upload", { method: "POST", body: fd });
-      let d: { url?: string; error?: string } = {};
-      try {
-        d = await r.json();
-      } catch {
-        // non-JSON response (e.g. HTML error)
+      if (file.size > 10 * 1024 * 1024) {
+        setError("Image is over 10 MB. Try a smaller file.");
+        return;
       }
-      if (!r.ok || !d.url) {
-        setError(d.error ?? `Upload failed (${r.status})`);
-      } else {
-        setImageUrl(d.url);
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+      // 1. Ask the server for a signed upload URL (small request, no size limit issue)
+      const signRes = await fetch("/api/upload/sign", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ext }),
+      });
+      const signData = await signRes.json().catch(() => ({}));
+      if (!signRes.ok || !signData.signedUrl) {
+        setError(signData.error ?? `Could not start upload (${signRes.status})`);
+        return;
       }
+      // 2. PUT the file directly to Supabase Storage (bypasses Vercel's 4.5 MB body limit)
+      const putRes = await fetch(signData.signedUrl, {
+        method: "PUT",
+        headers: {
+          "content-type": file.type || "application/octet-stream",
+          "x-upsert": "false",
+        },
+        body: file,
+      });
+      if (!putRes.ok) {
+        const text = await putRes.text().catch(() => "");
+        setError(`Upload failed (${putRes.status})${text ? ": " + text.slice(0, 120) : ""}`);
+        return;
+      }
+      setImageUrl(signData.publicUrl);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
     } finally {
